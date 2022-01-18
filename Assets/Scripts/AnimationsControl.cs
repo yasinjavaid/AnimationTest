@@ -9,17 +9,22 @@ using UnityEngine.Animations;
 struct Avatar
 {
     public AvatarMask avatarMask;
-    public AvatarMaskBodyPart BodyPart;
+    public AvatarMaskBodyPart playOtheranimationBodyPart;
 }
 public class AnimationsControl : MonoBehaviour
 {
     private readonly string cheeringTrigger = "Cheering";
     private readonly string clappingTrigger = "Clapping";
 
+    
     private int copyBodypart = -1;
     
-    [SerializeField] private Button[] gameplayButtons;
+    [SerializeField] private Button[] animationsButtons;
+    [SerializeField] private Button[] ikBodyControlButtons;
+    [SerializeField] private AvatarIKGoal ikPart;
     [SerializeField] private Avatar avatar;
+    [SerializeField] private GameObject targetObject;
+    
   
 
     private Animator animator;
@@ -28,17 +33,11 @@ public class AnimationsControl : MonoBehaviour
 
     private void Awake()
     {
-       gameplayButtons[0].onClick.AddListener(OnCheerButtonPress); 
-       gameplayButtons[1].onClick.AddListener(OnClampButtonPress);
+        AddUIButtonsListeners();
        animator =  this.gameObject.GetComponent<Animator>();
+     //  animator.SetIKPosition(av);
     }
 
-    void Start()
-    {
-        
-    }
-
-   
     void Update()
     {
         UpdateAvatar();
@@ -48,6 +47,16 @@ public class AnimationsControl : MonoBehaviour
    
 
     #region private members
+
+    private void AddUIButtonsListeners()
+    {
+        animationsButtons[0].onClick.AddListener(OnCheerButtonPress); 
+        animationsButtons[1].onClick.AddListener(OnClampButtonPress);
+        ikBodyControlButtons[0].onClick.AddListener(LeftHand);
+        ikBodyControlButtons[1].onClick.AddListener(RightHand);
+        ikBodyControlButtons[2].onClick.AddListener(LeftFoot);
+        ikBodyControlButtons[3].onClick.AddListener(RightFoot);
+    }
 
     private void OnCheerButtonPress()
     {
@@ -60,19 +69,54 @@ public class AnimationsControl : MonoBehaviour
 
     }
 
+    private void LeftHand()
+    {
+        SetBonePos(AvatarIKGoal.LeftHand);
+    }
+
+    private void RightHand()
+    {
+        SetBonePos(AvatarIKGoal.RightHand);
+    }
+
+    private void LeftFoot()
+    {
+        SetBonePos(AvatarIKGoal.LeftFoot);
+    }
+
+    private void RightFoot()
+    {
+        SetBonePos(AvatarIKGoal.RightFoot);
+    }
+
     private void UpdateAvatar()
     {
        
-        var temp = (int) avatar.BodyPart;
+        var temp = (int) avatar.playOtheranimationBodyPart;
         var on = copyBodypart == temp;
         if (copyBodypart != -1)
         {
             avatar.avatarMask.SetHumanoidBodyPartActive(on ? 
-                    avatar.BodyPart :
+                    avatar.playOtheranimationBodyPart :
                     (AvatarMaskBodyPart)copyBodypart
                 , on);
         }
         copyBodypart = temp;
+    }
+
+    private void SetBonePos(AvatarIKGoal goalBone)
+    {
+        SetIKWeightZero();
+        animator.SetIKPositionWeight(goalBone, 1);
+        animator.SetIKPosition(goalBone, targetObject.transform.position);
+    }
+    public void SetIKWeightZero()
+    {
+        animator.SetIKPositionWeight(AvatarIKGoal.RightHand, 0);
+        animator.SetIKPositionWeight(AvatarIKGoal.LeftHand, 0);
+        animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, 0);
+        animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, 0);
+
     }
 
     #endregion
