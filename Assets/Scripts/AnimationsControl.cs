@@ -25,9 +25,18 @@ public class AnimationsControl : MonoBehaviour
     [SerializeField] private Avatar avatar;
     [SerializeField] private GameObject targetObject;
     
-  
+    private enum IKParts
+    {
+        LeftHand,
+        RightHand,
+        LeftFoot,
+        RightFoot
+    }
 
+
+    private IKParts ikPartenum;
     private Animator animator;
+    private bool isik = false;
 
     #region mono members
 
@@ -41,6 +50,7 @@ public class AnimationsControl : MonoBehaviour
     void Update()
     {
         UpdateAvatar();
+        if (isik) SetBonePos(GetIKGoalFromEnum(ikPartenum));
     }
 
     #endregion
@@ -71,22 +81,26 @@ public class AnimationsControl : MonoBehaviour
 
     private void LeftHand()
     {
-        SetBonePos(AvatarIKGoal.LeftHand);
+        ikPartenum = IKParts.LeftHand;
+        isik = true;
     }
 
     private void RightHand()
     {
-        SetBonePos(AvatarIKGoal.RightHand);
+        ikPartenum = IKParts.RightHand;
+        isik = true;
     }
 
     private void LeftFoot()
     {
-        SetBonePos(AvatarIKGoal.LeftFoot);
+        ikPartenum = IKParts.LeftFoot;
+        isik = true;
     }
 
     private void RightFoot()
     {
-        SetBonePos(AvatarIKGoal.RightFoot);
+        ikPartenum = IKParts.RightFoot;
+        isik = true;
     }
 
     private void UpdateAvatar()
@@ -102,6 +116,30 @@ public class AnimationsControl : MonoBehaviour
                 , on);
         }
         copyBodypart = temp;
+    }
+
+    private AvatarIKGoal GetIKGoalFromEnum(IKParts parts)
+    {
+        AvatarIKGoal goal;
+        switch (parts)
+        {
+            case IKParts.LeftHand:
+                goal = AvatarIKGoal.LeftFoot;
+                break;
+            case IKParts.RightHand:
+                goal = AvatarIKGoal.LeftFoot;
+                break;
+            case IKParts.LeftFoot:
+                goal = AvatarIKGoal.LeftFoot;
+                break;
+            case IKParts.RightFoot:
+                goal = AvatarIKGoal.LeftFoot;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(parts), parts, null);
+        }
+
+        return goal;
     }
 
     private void SetBonePos(AvatarIKGoal goalBone)
